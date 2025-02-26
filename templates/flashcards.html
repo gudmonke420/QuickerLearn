@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: #f8fbfc;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #eef3f6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: #dde6ee;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            margin-bottom: 30px;
+        }
+
+        .navbar a {
+            margin: 0 15px;
+            color: #333;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .ask-ai-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Flashcard Section */
+        .flashcard-container {
+            background-color: #f4fafa;
+            padding: 80px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .flashcard-container h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .flashcard-container p {
+            font-size: 36px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 20px;
+        }
+
+        .controls button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 20px;
+            width: 60px;
+        }
+
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <a href="{{ url_for('ai_page') }}">Chatbot</a>
+        <a href="{{ url_for('flashcards')}}">Flashcards</a>
+        <a href="{{ url_for('test')}}">Tests</a>
+    </div>
+
+    <div class="main-content">
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('index') }}" class="active">Back</a>
+            </div>
+            <button class="ask-ai-btn" onclick="startFlashcards()">Start Flashcards</button>
+        </div>
+
+        <div class="flashcard-container">
+            <h1 id="progress">1/20</h1>
+            <p id="flashcard-text">Press "Start Flashcards" to begin</p>
+            <div class="controls">
+                <button onclick="showAnswer()">&rarr;</button> <!-- "Next" now shows the answer first -->
+                <button onclick="markAnswer(false)">X</button> <!-- Incorrect -->
+                <button onclick="markAnswer(true)">&#10003;</button> <!-- Correct -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let flashcards = [];
+        let currentIndex = 0;
+        let showAnswerFlag = false;
+
+        function startFlashcards() {
+            let topic = prompt("Enter topic for flashcards:");
+            if (!topic) return;
+
+            fetch('/generate_flashcards', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: topic })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    alert("Error generating flashcards.");
+                } else {
+                    flashcards = data.flashcards;
+                    currentIndex = 0;
+                    showAnswerFlag = false;
+                    loadFlashcard();
+                }
+            })
+            .catch(error => console.error("Fetch error:", error));
+        }
+
+        function loadFlashcard() {
+            if (currentIndex >= flashcards.length) {
+                document.getElementById("flashcard-text").innerText = "End of flashcards!";
+                document.getElementById("progress").innerText = "Completed!";
+                return;
+            }
+
+            let flashcard = flashcards[currentIndex];
+            document.getElementById("progress").innerText = `${currentIndex + 1}/${flashcards.length}`;
+
+            if (showAnswerFlag) {
+                document.getElementById("flashcard-text").innerText = `Answer: ${flashcard.answer}`;
+            } else {
+                document.getElementById("flashcard-text").innerText = `Question: ${flashcard.question}`;
+            }
+        }
+
+        function showAnswer() {
+            showAnswerFlag = true;
+            loadFlashcard();
+        }
+
+        function markAnswer(isCorrect) {
+            if (!showAnswerFlag) return; // Prevent marking answer before seeing it
+            currentIndex++;
+            showAnswerFlag = false;
+            loadFlashcard();
+        }
+    </script>
+
+</body>
+</html>

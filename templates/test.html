@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 250px;
+            background: #ffffff;
+            padding-top: 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar a {
+            display: block;
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: center;
+            text-decoration: none;
+            color: #4a4a4a;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            background: #4a90e2;
+            color: white;
+        }
+
+        /* Main Container */
+        .container {
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        /* Headings */
+        h1 {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        /* Board Selection */
+        #board-selection,
+        #topic-selection {
+            text-align: center;
+        }
+
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #357ab7;
+        }
+
+        /* Input Field */
+        input[type="text"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        /* Test Box */
+        .test-box {
+            display: none;
+            flex-direction: column;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Timer */
+        .timer {
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff5252;
+            margin-bottom: 10px;
+        }
+
+        /* Questions */
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fc;
+            border-radius: 6px;
+            border-left: 5px solid #4a90e2;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            margin-top: 10px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            font-size: 14px;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            background: #4caf50;
+        }
+
+        .submit-btn:hover {
+            background: #388e3c;
+        }
+
+        /* Results Box */
+        .results-box {
+            display: none;
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #4a90e2;
+        }
+
+        .results-box h2 {
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="{{ url_for('ai_page') }}">Chatbot</a>
+        <a href="{{ url_for('flashcards')}}">Flashcards</a>
+        <a href="{{ url_for('test')}}">Tests</a>
+    </div>
+
+    <div class="container">
+        
+        <!-- Results Box -->
+        <div id="results-box" class="results-box">
+            <h2>Your Score: <span id="score">0</span>/100</h2>
+            <h3>Feedback:</h3>
+            <ul id="feedback-list"></ul>
+        </div>
+
+        <h1>Select School Board</h1>
+        <div id="board-selection">
+            <button onclick="selectBoard('IB MYP')">IB MYP</button>
+            <button onclick="selectBoard('IGCSE')">IGCSE</button>
+            <button onclick="selectBoard('CBSE')">CBSE</button>
+        </div>
+
+        <div id="topic-selection" style="display: none;">
+            <h2>Enter Test Topic</h2>
+            <input type="text" id="test-topic" placeholder="Enter topic here">
+            <button onclick="startTest()">Start Test</button>
+        </div>
+
+        <!-- Test Section -->
+        <div id="test-box" class="test-box">
+            <div class="timer">Time Left: <span id="timer">30:00</span></div>
+            <div id="questions"></div>
+            <button onclick="submitTest()" class="submit-btn">Submit Test</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedBoard = "";
+        let timeLeft = 1800; // 30 minutes
+        let timerInterval;
+
+        function selectBoard(school_board) {
+            selectedBoard = school_board;
+            document.getElementById("board-selection").style.display = "none";
+            document.getElementById("topic-selection").style.display = "block";
+        }
+         // Timer Countdown
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitTest();
+                } else {
+                    let minutes = Math.floor(timeLeft / 60);
+                    let seconds = timeLeft % 60;
+                    document.getElementById("timer").innerText = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+        function startTest() {
+            const topic = document.getElementById("test-topic").value.trim();
+            if (!topic) {
+                alert("Please enter a test topic.");
+                return;
+            }
+
+            document.getElementById("topic-selection").style.display = "none";
+            document.getElementById("test-box").style.display = "flex";
+
+            fetchQuestions(topic);
+            startTimer();
+        }
+
+        function fetchQuestions(topic) {
+            fetch('/generate_test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ school_board: selectedBoard, topic: topic })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const questionsContainer = document.getElementById("questions");
+                questionsContainer.innerHTML = "";
+
+                data.questions.forEach((q, index) => {
+                    let questionHTML = `
+                        <div class="question">
+                            <p>Question ${index + 1} (${q.type}): ${q.question}</p>
+                            <textarea id="q${index}" data-question="${q.question}" data-type="${q.type}"></textarea>
+                        </div>
+                    `;
+                    questionsContainer.innerHTML += questionHTML;
+                });
+            });
+        }
+
+        function submitTest() {
+            clearInterval(timerInterval);
+
+            let answers = [];
+            document.querySelectorAll("textarea").forEach(textarea => {
+                answers.push({
+                    question: textarea.dataset.question,
+                    type: textarea.dataset.type,
+                    answer: textarea.value.trim() || "Incomplete"
+                });
+            });
+
+            fetch('/submit_test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answers: answers })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("score").innerText = data.score;
+                document.getElementById("feedback-list").innerHTML = data.feedback.map(f => `<li>${f.question}: ${f.feedback}</li>`).join("");
+                document.getElementById("results-box").style.display = "block";
+            });
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickerLearn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="floating-nav">  
+            <div class="logo"> <span class="blue">Quicker</span>Learn </div>
+            <ul>
+                <li><a href="{{ url_for('index') }}" class="active">Home</a></li>
+                <li><a href="{{ url_for('ai_page')}}">Begin Revising</a></li>
+            </ul>
+            <button class="ask-ai">Begin Revision</button>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <div class="text-content">
+            <h1>Do you want easy marks?</h1>
+            <p>Use QuickerLearn to improve grades</p>
+            <div class="buttons">
+                <button class="primary">Ask for a topic</button>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search up any topic">
+                    <button class="search-btn">🔍</button>
+                </div>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="{{ url_for('static', filename='assets/homepage1.png') }}" alt="Student using AI" class="hero-img">
+        </div>
+    </section>
+    
+    <section class="features">
+        <div class="feature">
+            <img src="{{ url_for('static', filename='assets/create_account.png') }}" alt="Create Account" class="feature-img">
+        </div>
+        <div class="feature">
+            <img src="{{ url_for('static', filename='assets/ask_ai.png') }}" alt="Ask AI" class="feature-img">
+        </div>
+        <div class="feature">
+            <img src="{{ url_for('static', filename='assets/pass_exams.png') }}" alt="Pass Exam" class="feature-img"> 
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <h2>QuickerLearn</h2>
+            <p>QuickerLearn helps you take notes, create flashcards, and test yourself using AI. Improve your learning experience and get better grades effortlessly!</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

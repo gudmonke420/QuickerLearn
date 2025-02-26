@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #357ab7;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>QuickerLearn</h1>
+    
+    <div id="auth-container" class="container">
+        <h2>Login</h2>
+        <input type="email" id="email" placeholder="Enter your email">
+        <input type="password" id="password" placeholder="Enter your password">
+        <button onclick="login()">Login</button>
+        <h2>Register</h2>
+        <input type="email" id="register-email" placeholder="Enter your email">
+        <input type="password" id="register-password" placeholder="Enter your password">
+        <button onclick="register()">Register</button>
+    </div>
+
+    <div id="welcome-container" class="container hidden">
+        <h2>Welcome!</h2>
+        <p id="user-email"></p>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        // Firebase configuration (Replace with your own Firebase credentials)
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyAYAYSOl-NcMvcoifCHHV6CjYlz4SS69hk",
+            authDomain: "quickerlearn-1efc6.firebaseapp.com",
+            projectId: "quickerlearn-1efc6",
+            storageBucket: "quickerlearn-1efc6.firebasestorage.app",
+            messagingSenderId: "1094270894297",
+            appId: "1:1094270894297:web:89b942bab3f1b616e13ec8",
+            measurementId: "G-FZ703Z9J63"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const authContainer = document.getElementById("auth-container");
+        const welcomeContainer = document.getElementById("welcome-container");
+        const userEmail = document.getElementById("user-email");
+
+        // Register a new user
+        window.register = function() {
+            const email = document.getElementById("register-email").value;
+            const password = document.getElementById("register-password").value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(userCredential => {
+                    alert("Registration successful!");
+                    updateUI(userCredential.user);
+                    window.location.href = "/index"; 
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        };
+
+        // Log in an existing user
+        window.login = function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then(userCredential => {
+                    alert("Login successful!");
+                    window.location.href = "/index";  // Redirect to homepage
+                })
+                .catch(error => {
+                    alert(error.message);
+            });
+        };
+
+
+        // Log out the user
+        window.logout = function() {
+            signOut(auth)
+                .then(() => {
+                    alert("Logged out!");
+                    updateUI(null);
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        };
+
+        // Update UI based on authentication state
+        function updateUI(user) {
+            if (user) {
+                authContainer.classList.add("hidden");
+                welcomeContainer.classList.remove("hidden");
+                userEmail.innerText = `Logged in as: ${user.email}`;
+            } else {
+                authContainer.classList.remove("hidden");
+                welcomeContainer.classList.add("hidden");
+            }
+        }
+
+        // Keep user logged in even after refresh
+        onAuthStateChanged(auth, (user) => {
+            updateUI(user);
+        });
+    </script>
+
+</body>
+</html>

@@ -8,7 +8,7 @@ import re
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Needed for session storage
 
-genai.configure(api_key="AIzaSyA-IvpCksoe_kJeXCvQlIxz4doLM0CsTzQ")
+genai.configure(api_key="dumbahhmf")
 
 generation_config = {
     "temperature": 1,
